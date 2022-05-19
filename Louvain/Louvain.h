@@ -51,6 +51,7 @@ public:
     int firstStage();
     void secondStage();
     void learnLouvain();
+    void checkLengh(int cid);
 };
 
 void run_louvain();

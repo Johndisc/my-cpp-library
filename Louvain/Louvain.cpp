@@ -123,7 +123,7 @@ int Louvain::firstStage() {
                 }
             if (maxDeltaQ > 0.0 && maxId != cid) {
                 if (maxId == -1) {
-                    fprintf(stderr, "this can not be, something must be wrong\n");
+//                    fprintf(stderr, "this can not be, something must be wrong\n");
                     return 0;
                 }
                 removeNodeFromComm(ci, cwei);
@@ -132,7 +132,7 @@ int Louvain::firstStage() {
                 stage_two = 1;
             }
         }
-        fprintf(stderr, "    one iteration inner first stage, changed nodes : %d\n", cct);
+//        fprintf(stderr, "    one iteration inner first stage, changed nodes : %d\n", cct);
         if (cct == 0) {
             break;
         }
@@ -144,6 +144,7 @@ int Louvain::firstStage() {
     return stage_two;
 }
 
+//新插入的点id接到社区cid的next头部
 void Louvain::addNodeToComm(int id, int cid, double weight) {
     nodes[id].clsid = cid;
     nodes[id].next = nodes[cid].next;
@@ -189,6 +190,24 @@ void Louvain::removeNodeFromComm(int id, double weight) {
     }
 }
 
+void Louvain::checkLengh(int cid)
+{
+    int first = nodes[cid].first;
+    int fcnt = 1;
+    while (first != -1) {
+        fcnt++;
+        first = nodes[first].next;
+    }
+    first = nodes[cid].next;
+    int ncnt = 1;
+    while (first != -1) {
+        ncnt++;
+        first = nodes[first].next;
+    }
+    printf("\ncheckLengh:  first: %d  next: %d  count: %d  clsid: %d\n", fcnt, ncnt, nodes[1672].count,
+           nodes[1672].clsid);
+}
+
 void Louvain::secondStage() {
     int i, ci, next, first, tclen = 0;
     int l, r, telen = 0, lcid, rcid;
@@ -197,6 +216,7 @@ void Louvain::secondStage() {
         ci = cindex[i];
         if (nodes[ci].clsid == ci) {
             cindex[tclen++] = ci;
+            //把next链 接到first链后面
             next = nodes[ci].next;
             first = nodes[ci].first;
             if (first != -1) {
@@ -247,64 +267,34 @@ void Louvain::learnLouvain() {
 }
 
 void Louvain::initGraph() {
-//    int offset[] = {0, 3, 4, 7, 9, 10, 11, 13, 14, 16, 17, 18, 19};
-//    int neighbor[] = {4, 8, 10, 7, 5, 9, 11, 0, 7, 3, 9, 2, 10, 11, 6, 10, 1, 3, 1};
-    int offset[] = {0, 0, 1, 2, 3, 4, 7, 7, 8, 8};
-    int neighbor[] = {4, 4, 4, 5, 6, 7, 0, 8};
-//    int nodeNum = 12;
-//    int edgeNum = 19;
-    int nodeNum = 9;
-    int edgeNum = 8;
+    int offset[] = {0, 3, 4, 7, 9, 10, 11, 13, 14, 16, 17, 18, 19};
+    int neighbor[] = {4, 8, 10, 7, 5, 9, 11, 0, 7, 3, 9, 2, 10, 11, 6, 10, 1, 3, 1};
+//    int offset[] = {0, 0, 1, 2, 3, 4, 7, 7, 8, 8};
+//    int neighbor[] = {4, 4, 4, 5, 6, 7, 0, 8};
+    int nodeNum = 12;
+    int edgeNum = 19;
+//    int nodeNum = 9;
+//    int edgeNum = 8;
     initLouvain(nodeNum, edgeNum, offset, neighbor);
 }
 
 void Louvain::prtCom() {
-    map<int, int> total, count;
-    for (int i = 0; i < clen; ++i) {
-        int cnt = 0;
-        int ci = cindex[i];
-        assert(ci==nodes[ci].clsid);
-        int next = nodes[ci].first;
-//        if (i==0)
-//        printf("%d ", ci);
-        cnt++;
-        while (next != -1) {
-//            if (i==0)
-//            printf("%d ", next);
-            cnt++;
-            next = nodes[next].next;
-        }
-        total[cnt]++;
-        count[nodes[ci].count]++;
-//        if (cnt!=nodes[ci].count)
-//            printf("different  :  %d   %d   %d   %d\n", cnt, nodes[ci].count, i, ci);
-//        printf("\n");
-    }
-//    printf("\n");
-    map<int, int> com, com_cnt;
     for (int i = 0; i < nlen; ++i) {
-//        if (nodes[i].clsid == nodes[cindex[0]].clsid)
-//            printf("%d ", i);
-        com[nodes[i].clsid]++;
+        int clsid = nodes[i].clsid;
+        while (nodes[clsid].clsid != clsid)
+            clsid = nodes[clsid].clsid;
+        nodes[i].clsid = clsid;
     }
-    for (auto ea:com)
-        com_cnt[ea.second]++;
-    for (auto ea:com_cnt)
-        printf("(%d  %d)\n", ea.first, ea.second);
-    printf("\n--------------------\n");
-
-    int cnt = 0;
-    for (auto ea:total) {
-        cnt += ea.second * ea.first;
+    map<int, int> com_cnt;
+    int sum = 0;
+    for (int i = 0; i < clen; ++i) {
+        com_cnt[nodes[cindex[i]].count]++;
+    }
+    for (auto ea:com_cnt) {
+        sum += ea.first * ea.second;
         printf("%d : %d\n", ea.first, ea.second);
     }
-    printf("clen : %d, com : %lu\n", clen,com.size());
-    cnt = 0;
-//    for (auto ea:count) {
-//        cnt += ea.second * ea.first;
-//        printf("%d : %d\n", ea.first, ea.second);
-//    }
-    printf("total : %d\n", cnt);
+    printf("%d\n", sum);
 }
 
 void run_louvain()
