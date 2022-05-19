@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
-project(thread_test)
+project(my_cpp_library)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(thread_test main.cpp ThreadPool.cpp ThreadPool.h Blocking_deque.cpp Blocking_deque.h)
+add_executable(my_cpp_library graph.h ThreadPool/ThreadPool.cpp ThreadPool/ThreadPool.h ThreadPool/Blocking_deque.cpp ThreadPool/Blocking_deque.h ThreadPool/test.h main.cpp Louvain/Louvain.cpp Louvain/Louvain.h)
 
 FIND_PACKAGE( OpenMP REQUIRED)
 if(OPENMP_FOUND)
